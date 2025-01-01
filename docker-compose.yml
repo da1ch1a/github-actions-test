@@ -1,0 +1,47 @@
+services:
+  db:
+    image: mysql/mysql-server:8.0
+    container_name: github-actions-test-mysql
+    restart: always
+    ports:
+      - "33060:3306"
+    environment:
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_USER=root
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=github_actions_test_local
+      - MYSQL_ROOT_HOST=%
+    volumes:
+      - github-actions-mysql-data:/var/lib/mysql
+      - ./docker/local/mysql/config/my.cnf:/etc/mysql/my.cnf
+    networks:
+      - github-actions-test-network
+
+  app:
+    image: github-actions-test-backend-image
+    container_name: github-actions-test-backend
+    depends_on:
+      - db
+    # DBコンテナが起動するまで待たないとエラーになる
+    entrypoint: ["sh", "-c", "./wait-for.sh db:3306 -- ./local_entrypoint.sh"]
+    build:
+      context: .
+      dockerfile: ./docker/local/Dockerfile
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./:/go/src/app
+    ports:
+      - "8080:8080"
+    # ローカル環境でのみ.envファイルを読み込み、Cloud Runではコンソールから環境変数を設定する
+    environment:
+      - ENV=local
+    networks:
+      - github-actions-test-network
+
+volumes:
+  github-actions-mysql-data:
+
+networks:
+  github-actions-test-network:
