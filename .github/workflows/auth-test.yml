@@ -1,0 +1,24 @@
+name: Auth Test
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - id: auth
+        name: Authentication to Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: ${{ secrets.PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.AUTH_TEST_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.AUTH_TEST_SERVICE_ACCOUNT }}
+          token_format: access_token
+
