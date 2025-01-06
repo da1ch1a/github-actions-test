@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   push:
 
-# pushするためのコメント
 jobs:
   auth-test:
     runs-on: ubuntu-latest
